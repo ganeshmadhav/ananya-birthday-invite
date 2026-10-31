@@ -346,7 +346,7 @@
       </div>
     </section>
 
-    <!-- RSVP FORM SECTION (Connected to Google Spreadsheet Columns: Name, Adults, Kids, Dietry preferences) -->
+    <!-- RSVP FORM SECTION -->
     <section id="rsvp-section" class="bg-white/95 rounded-3xl p-6 sm:p-8 shadow-bubbly border-4 border-rose-300 relative backdrop-blur-md">
       
       <div class="text-center mb-6">
@@ -442,19 +442,7 @@
           </div>
         </div>
 
-        <!-- 4. Column: Dietry preferences -->
-        <div>
-          <label for="notesInput" class="block font-rhyme text-xs uppercase tracking-wider text-slate-700 font-bold mb-1">
-            Dietry preferences
-          </label>
-          <textarea 
-            id="notesInput" 
-            name="notes" 
-            rows="2" 
-            placeholder="Vegetarian, nut allergy, high chair needed, etc."
-            class="w-full px-4 py-2.5 rounded-2xl border-2 border-slate-200 focus:border-rose-400 focus:ring-4 focus:ring-rose-100 outline-none text-slate-800 transition font-medium text-sm"
-          ></textarea>
-        </div>
+
 
         <!-- Web3Forms Captcha Widget (hCaptcha) -->
         <div class="flex justify-center my-3 overflow-hidden">
@@ -1230,8 +1218,6 @@
         const attending = formData.get("attending");
         const adults = formData.get("adults_count") || "0";
         const kids = formData.get("kids_count") || "0";
-        const dietary = formData.get("notes") || "None";
-
         const originalBtnText = submitBtn.innerHTML;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span>Sending RSVP...</span> <span class="text-xl animate-spin inline-block">⏳</span>';
@@ -1245,7 +1231,7 @@
               method: "POST",
               mode: "no-cors",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ name, attending, adults, kids, dietary })
+              body: JSON.stringify({ name, attending, adults, kids })
             }).catch(err => console.warn("Google Sheet forward note:", err))
           );
         }
@@ -1260,8 +1246,7 @@
           web3FormData.set("Attending", attending === "Yes" ? "Yes! Can't wait 🎉" : attending === "Tentative" ? "Maybe 🤔" : "Sorry, can't make it 😢");
           web3FormData.set("Adults", adults);
           web3FormData.set("Kids", kids);
-          web3FormData.set("Dietary_Preferences", dietary);
-          web3FormData.set("message", "Guest: " + name + "\nAttending: " + attending + "\nAdults: " + adults + ", Kids: " + kids + "\nDietary: " + dietary);
+          web3FormData.set("message", "Guest: " + name + "\nAttending: " + attending + "\nAdults: " + adults + ", Kids: " + kids);
 
           promises.push(
             fetch("https://api.web3forms.com/submit", {
@@ -1281,15 +1266,14 @@
         // Local backup
         try {
           const stored = JSON.parse(localStorage.getItem("ananya_rsvps") || "[]");
-          stored.push({ name, attending, adults, kids, dietary, date: new Date().toISOString() });
+          stored.push({ name, attending, adults, kids, date: new Date().toISOString() });
           localStorage.setItem("ananya_rsvps", JSON.stringify(stored));
         } catch (err) {}
 
         summaryDiv.innerHTML = [
           "<div><strong>Name:</strong> " + name + "</div>",
           "<div><strong>Status:</strong> " + (attending === "Yes" ? "Attending with joy! 🎉" : attending === "Tentative" ? "Tentative / Maybe 🤔" : "Cannot make it 😢") + "</div>",
-          (attending !== "No" ? "<div><strong>Party Count:</strong> " + adults + " Adult(s), " + kids + " Kid(s)</div>" : ""),
-          (dietary && dietary.trim() !== "" && dietary !== "None" ? "<div><strong>Dietry Preferences:</strong> " + dietary + "</div>" : "")
+          (attending !== "No" ? "<div><strong>Party Count:</strong> " + adults + " Adult(s), " + kids + " Kid(s)</div>" : "")
         ].join("");
 
         playFanfare();
