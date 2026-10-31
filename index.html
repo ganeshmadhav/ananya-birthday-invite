@@ -142,17 +142,74 @@
     .animate-soft-pulse {
       animation: softPulse 2.5s ease-in-out infinite;
     }
+
+    /* Birthday Balloons Floating */
+    @keyframes floatBalloon {
+      0%, 100% { transform: translateY(0) rotate(-4deg); }
+      50% { transform: translateY(-24px) rotate(6deg); }
+    }
+    .animate-balloon-1 { animation: floatBalloon 5s ease-in-out infinite; }
+    .animate-balloon-2 { animation: floatBalloon 6.5s ease-in-out infinite 1.2s; }
+    .animate-balloon-3 { animation: floatBalloon 4.8s ease-in-out infinite 0.7s; }
+    .animate-balloon-4 { animation: floatBalloon 5.8s ease-in-out infinite 2s; }
+
+    /* Musical Notes Swaying */
+    @keyframes floatMusic {
+      0%, 100% { transform: translateY(0) rotate(8deg) scale(1); }
+      50% { transform: translateY(-18px) rotate(-8deg) scale(1.1); }
+    }
+    .animate-music-1 { animation: floatMusic 4s ease-in-out infinite; }
+    .animate-music-2 { animation: floatMusic 4.6s ease-in-out infinite 1.5s; }
+    .animate-music-3 { animation: floatMusic 5.2s ease-in-out infinite 0.8s; }
+    .animate-music-4 { animation: floatMusic 4.2s ease-in-out infinite 2.2s; }
+
+    /* Birthday Cakes Bobbing */
+    @keyframes floatCake {
+      0%, 100% { transform: translateY(0) rotate(-3deg); }
+      50% { transform: translateY(-14px) rotate(4deg); }
+    }
+    .animate-cake-1 { animation: floatCake 4.5s ease-in-out infinite 0.5s; }
+    .animate-cake-2 { animation: floatCake 5.5s ease-in-out infinite 1.8s; }
+    .animate-cake-3 { animation: floatCake 4.2s ease-in-out infinite 2.4s; }
   </style>
 </head>
 <body class="antialiased selection:bg-rose-200 selection:text-rose-900 relative">
 
-  <!-- Background Whimsical Elements -->
-  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-    <div class="absolute top-12 -left-10 text-6xl opacity-30 animate-cloud-slow">☁️</div>
-    <div class="absolute top-40 -right-8 text-7xl opacity-30 animate-cloud-slow" style="animation-duration: 11s;">☁️</div>
-    <div class="absolute top-[48%] left-4 text-3xl opacity-20">⭐</div>
-    <div class="absolute top-[65%] right-6 text-4xl opacity-20">🎈</div>
-    <div class="absolute top-[85%] left-10 text-3xl opacity-25">🎵</div>
+  <!-- Background Whimsical Birthday Elements (Balloons, Musical Notes, Cakes) -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 select-none">
+    <!-- Soft Clouds -->
+    <div class="absolute top-10 -left-10 text-6xl opacity-30 animate-cloud-slow">☁️</div>
+    <div class="absolute top-36 -right-10 text-7xl opacity-30 animate-cloud-slow" style="animation-duration: 12s;">☁️</div>
+
+    <!-- Festive Floating Balloons -->
+    <div class="absolute top-20 left-4 text-4xl opacity-50 animate-balloon-1 filter drop-shadow-sm" title="Birthday Balloon">🎈</div>
+    <div class="absolute top-[18%] right-5 text-5xl opacity-55 animate-balloon-2 filter drop-shadow-sm">🎈</div>
+    <div class="absolute top-[42%] left-3 text-4xl opacity-45 animate-balloon-3 filter drop-shadow-sm">🎈</div>
+    <div class="absolute top-[60%] right-4 text-5xl opacity-55 animate-balloon-4 filter drop-shadow-sm">🎈</div>
+    <div class="absolute top-[75%] left-5 text-4xl opacity-50 animate-balloon-1 filter drop-shadow-sm">🎈</div>
+    <div class="absolute top-[90%] right-6 text-5xl opacity-50 animate-balloon-3 filter drop-shadow-sm">🎈</div>
+
+    <!-- Whimsical Musical Notes for Rhymes & Sing-along -->
+    <div class="absolute top-28 right-8 text-3xl opacity-55 animate-music-1 filter drop-shadow-sm">🎵</div>
+    <div class="absolute top-[28%] left-6 text-4xl opacity-55 animate-music-2 filter drop-shadow-sm">🎶</div>
+    <div class="absolute top-[48%] right-6 text-3xl opacity-50 animate-music-3 filter drop-shadow-sm">🎼</div>
+    <div class="absolute top-[68%] left-4 text-4xl opacity-55 animate-music-4 filter drop-shadow-sm">🎵</div>
+    <div class="absolute top-[82%] right-8 text-3xl opacity-55 animate-music-1 filter drop-shadow-sm">🎶</div>
+    <div class="absolute top-[95%] left-6 text-4xl opacity-50 animate-music-2 filter drop-shadow-sm">🎵</div>
+
+    <!-- Delicious Birthday Cakes & Sweet Treats -->
+    <div class="absolute top-[12%] left-8 text-3xl opacity-50 animate-cake-1 filter drop-shadow-sm" title="Birthday Cake">🎂</div>
+    <div class="absolute top-[34%] right-5 text-4xl opacity-55 animate-cake-2 filter drop-shadow-sm" title="Birthday Cake">🎂</div>
+    <div class="absolute top-[52%] left-5 text-3xl opacity-50 animate-cake-3 filter drop-shadow-sm" title="Sweet Cupcake">🧁</div>
+    <div class="absolute top-[70%] right-7 text-3xl opacity-50 animate-cake-1 filter drop-shadow-sm" title="Cake Slice">🍰</div>
+    <div class="absolute top-[85%] left-7 text-4xl opacity-55 animate-cake-2 filter drop-shadow-sm" title="Birthday Cake">🎂</div>
+    <div class="absolute top-[92%] right-10 text-3xl opacity-50 animate-cake-3 filter drop-shadow-sm" title="Sweet Cupcake">🧁</div>
+
+    <!-- Twinkling Party Stars -->
+    <div class="absolute top-[22%] right-14 text-2xl opacity-40 animate-pulse">✨</div>
+    <div class="absolute top-[40%] left-10 text-xl opacity-35 animate-pulse" style="animation-delay: 1s;">⭐</div>
+    <div class="absolute top-[64%] left-12 text-2xl opacity-40 animate-pulse" style="animation-delay: 1.5s;">✨</div>
+    <div class="absolute top-[80%] right-12 text-2xl opacity-40 animate-pulse" style="animation-delay: 0.5s;">⭐</div>
   </div>
 
   <!-- FLOATING NAVIGATION BAR -->
@@ -215,7 +272,7 @@
       </div>
 
       <h2 class="font-rhyme text-xl sm:text-2xl text-emerald-600 font-bold tracking-wide">
-        "Ananya is Turning Two-riffic!"
+        🎂 "Ananya is Turning Two-riffic!" 🎈
       </h2>
       <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
         (Tap the big number 2 badge anytime for party confetti!)
@@ -224,7 +281,7 @@
       <!-- LIVE COUNTDOWN TIMER TO NOVEMBER 14, 2026 at 5:00 PM -->
       <div class="mt-6 pt-5 border-t border-amber-100">
         <p class="text-xs font-bold uppercase tracking-wider text-amber-800 font-rhyme mb-2 flex items-center justify-center gap-1">
-          <span>⏰</span> Countdown to the Party Fun
+          <span>🎂</span> <span>Countdown to Ananya's Party!</span> <span>🎈</span>
         </p>
         <div class="grid grid-cols-4 gap-2 sm:gap-3 max-w-xs mx-auto text-center" id="countdownTimer">
           <div class="bg-amber-50 rounded-2xl p-2 border border-amber-200">
@@ -516,9 +573,9 @@
         <div class="inline-block p-2.5 bg-rose-100 rounded-full mb-2">
           <span class="text-3xl">💌</span>
         </div>
-        <h3 class="font-rhyme text-2xl sm:text-3xl font-extrabold text-rose-600">Kindly RSVP</h3>
+        <h3 class="font-rhyme text-2xl sm:text-3xl font-extrabold text-rose-600 flex items-center justify-center gap-1.5"><span>🎈</span> <span>Kindly RSVP</span> <span>🎂</span></h3>
         <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-sm mx-auto font-medium">
-          Please let us know by <span class="font-bold text-rose-600">Saturday, November 7th, 2026</span> so we can prepare enough monkey treats!
+          Please let us know by <span class="font-bold text-rose-600">Saturday, November 7th, 2026</span> so we can prepare enough birthday cake & monkey treats! 🎈
         </p>
       </div>
 
