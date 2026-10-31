@@ -356,7 +356,11 @@
         </p>
       </div>
 
-      <form id="rsvpForm" class="space-y-4" novalidate>
+      <form id="rsvpForm" action="https://api.web3forms.com/submit" method="POST" class="space-y-4" novalidate>
+        <!-- Web3Forms Access Key & Config -->
+        <input type="hidden" name="access_key" value="cbde1b40-4353-4c0e-aedc-bef5aaed41e7">
+        <input type="hidden" name="subject" value="New RSVP for Ananya's 2nd Birthday">
+        <input type="hidden" name="from_name" value="Ananya Birthday Invite">
         
         <!-- 1. Column: Name -->
         <div>
@@ -1366,23 +1370,22 @@
 
         // 2. Send to Web3Forms (instant email to host inbox)
         if (WEB3FORMS_ACCESS_KEY && WEB3FORMS_ACCESS_KEY.trim() !== "") {
-          const web3Payload = {
-            access_key: WEB3FORMS_ACCESS_KEY,
-            subject: "New RSVP for Ananya's 2nd Birthday from " + name,
-            from_name: "Ananya Birthday Invite",
-            Guest_Name: name,
-            Attending: attending === "Yes" ? "Yes! Can't wait 🎉" : attending === "Tentative" ? "Maybe 🤔" : "Sorry, can't make it 😢",
-            Adults: adults,
-            Kids: kids,
-            Dietary_Preferences: dietary,
-            message: name + " has RSVP'd: " + attending + ". Adults: " + adults + ", Kids: " + kids + ". Dietary: " + dietary
-          };
+          const web3FormData = new FormData(form);
+          web3FormData.set("access_key", WEB3FORMS_ACCESS_KEY);
+          web3FormData.set("name", name);
+          web3FormData.set("subject", "New RSVP for Ananya's 2nd Birthday from " + name);
+          web3FormData.set("from_name", "Ananya Birthday Invite");
+          web3FormData.set("Attending", attending === "Yes" ? "Yes! Can't wait 🎉" : attending === "Tentative" ? "Maybe 🤔" : "Sorry, can't make it 😢");
+          web3FormData.set("Adults", adults);
+          web3FormData.set("Kids", kids);
+          web3FormData.set("Dietary_Preferences", dietary);
+          web3FormData.set("message", "Guest: " + name + "\nAttending: " + attending + "\nAdults: " + adults + ", Kids: " + kids + "\nDietary: " + dietary);
+
           promises.push(
             fetch("https://api.web3forms.com/submit", {
               method: "POST",
-              headers: { "Content-Type": "application/json", "Accept": "application/json" },
-              body: JSON.stringify(web3Payload)
-            }).catch(err => console.warn("Web3Forms forward note:", err))
+              body: web3FormData
+            }).catch(err => console.warn("Web3Forms forward notice:", err))
           );
         }
 
