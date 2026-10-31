@@ -893,9 +893,38 @@
         }
       }
       if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
+        audioCtx.resume().catch(() => {});
       }
       return audioCtx;
+    }
+
+    // iOS Safari Audio Unlocker
+    function unlockIOSAudio() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      // Play a short silent buffer to unlock the audio hardware on iPhone
+      try {
+        const buffer = ctx.createBuffer(1, 1, 22050);
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        source.start(0);
+      } catch (e) {}
+    }
+
+    // Listen to touch and click to immediately unlock audio on iPhone
+    if (typeof window !== 'undefined') {
+      ['touchstart', 'touchend', 'click'].forEach(evt => {
+        document.addEventListener(evt, function onFirstGesture() {
+          unlockIOSAudio();
+          if (audioCtx && audioCtx.state === 'running') {
+            document.removeEventListener(evt, onFirstGesture);
+          }
+        }, { passive: true, capture: true });
+      });
     }
 
     function playBeep(freq, type = 'sine', duration = 0.15, gainVal = 0.1) {
@@ -1282,98 +1311,110 @@
     }
 
     // =========================================================================
-    // 7. RSVP FORM SUBMISSION & GOOGLE SPREADSHEET SYNC
-    // Columns: Name | Adults | Kids | Dietry preferences
-    // =========================================================================
-    
-    // Paste your deployed Google Apps Script Web App URL below when ready:
-    const GOOGLE_SHEET_WEB_APP_URL = ""; 
+    // 7. RSVP FORM SUBMISSION & CLOUD INTEGRATION (Google Sheets / Web3Forms)
+    // -------------------------------------------------------------------------
+    // Option A: Deployed Google Apps Script Web App URL (writes to Google Sheet)
+    const GOOGLE_SHEET_WEB_APP_URL = "";
+
+    // Option B: Free Web3Forms Access Key from https://web3forms.com (sends email)
+    const WEB3FORMS_ACCESS_KEY = "cbde1b40-4353-4c0e-aedc-bef5aaed41e7";
+    // -------------------------------------------------------------------------
 
     function setupForm() {
-      const form = document.getElementById('rsvpForm');
-      const nameInput = document.getElementById('guestNameInput');
-      const errorMsg = document.getElementById('formErrorMessage');
-      const modal = document.getElementById('rsvpModal');
-      const closeModalBtn = document.getElementById('closeModalBtn');
-      const summaryDiv = document.getElementById('modalDetailsSummary');
+      const form = document.getElementById("rsvpForm");
+      const nameInput = document.getElementById("guestNameInput");
+      const submitBtn = document.getElementById("submitRsvpBtn");
+      const errorMsg = document.getElementById("formErrorMessage");
+      const modal = document.getElementById("rsvpModal");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+      const summaryDiv = document.getElementById("modalDetailsSummary");
 
-      form.addEventListener('submit', (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        // Validate Name
         if (!nameInput.value.trim()) {
-          errorMsg.classList.remove('hidden');
+          errorMsg.classList.remove("hidden");
           nameInput.focus();
           return;
         }
-        errorMsg.classList.add('hidden');
+        errorMsg.classList.add("hidden");
 
-        // Gather Data formatted for Google Spreadsheet columns
         const formData = new FormData(form);
-        const name = formData.get('guest_name');
-        const attending = formData.get('attending');
-        const adults = formData.get('adults_count') || '0';
-        const kids = formData.get('kids_count') || '0';
-        const dietary = formData.get('notes') || 'None';
+        const name = formData.get("guest_name");
+        const attending = formData.get("attending");
+        const adults = formData.get("adults_count") || "0";
+        const kids = formData.get("kids_count") || "0";
+        const dietary = formData.get("notes") || "None";
 
-        // 1. Submit to Google Apps Script (if Web App URL is configured)
-        if (GOOGLE_SHEET_WEB_APP_URL && GOOGLE_SHEET_WEB_APP_URL.trim() !== '') {
-          fetch(GOOGLE_SHEET_WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: name,
-              attending: attending,
-              adults: adults,
-              kids: kids,
-              dietary: dietary
-            })
-          }).then(() => {
-            console.log("Successfully forwarded RSVP to Google Sheets!");
-          }).catch((err) => {
-            console.warn("Google Sheet forwarding note:", err);
-          });
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Sending RSVP...</span> <span class="text-xl animate-spin inline-block">⏳</span>';
+
+        const promises = [];
+
+        // 1. Send to Google Apps Script if URL provided
+        if (GOOGLE_SHEET_WEB_APP_URL && GOOGLE_SHEET_WEB_APP_URL.trim() !== "") {
+          promises.push(
+            fetch(GOOGLE_SHEET_WEB_APP_URL, {
+              method: "POST",
+              mode: "no-cors",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name, attending, adults, kids, dietary })
+            }).catch(err => console.warn("Google Sheet forward note:", err))
+          );
         }
 
-        // 2. Safe local backup in browser localStorage
+        // 2. Send to Web3Forms (instant email to host inbox)
+        if (WEB3FORMS_ACCESS_KEY && WEB3FORMS_ACCESS_KEY.trim() !== "") {
+          const web3Payload = {
+            access_key: WEB3FORMS_ACCESS_KEY,
+            subject: "New RSVP for Ananya's 2nd Birthday from " + name,
+            from_name: "Ananya Birthday Invite",
+            Guest_Name: name,
+            Attending: attending === "Yes" ? "Yes! Can't wait 🎉" : attending === "Tentative" ? "Maybe 🤔" : "Sorry, can't make it 😢",
+            Adults: adults,
+            Kids: kids,
+            Dietary_Preferences: dietary,
+            message: name + " has RSVP'd: " + attending + ". Adults: " + adults + ", Kids: " + kids + ". Dietary: " + dietary
+          };
+          promises.push(
+            fetch("https://api.web3forms.com/submit", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Accept": "application/json" },
+              body: JSON.stringify(web3Payload)
+            }).catch(err => console.warn("Web3Forms forward note:", err))
+          );
+        }
+
+        if (promises.length > 0) {
+          await Promise.all(promises);
+        }
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+
+        // Local backup
         try {
-          const stored = JSON.parse(localStorage.getItem('ananya_rsvps') || '[]');
-          stored.push({
-            name, attending, adults, kids, dietary,
-            date: new Date().toISOString()
-          });
-          localStorage.setItem('ananya_rsvps', JSON.stringify(stored));
+          const stored = JSON.parse(localStorage.getItem("ananya_rsvps") || "[]");
+          stored.push({ name, attending, adults, kids, dietary, date: new Date().toISOString() });
+          localStorage.setItem("ananya_rsvps", JSON.stringify(stored));
         } catch (err) {}
 
-        // 3. Populate Confirmation Modal Summary
-        summaryDiv.innerHTML = `
-          <div><strong>Name:</strong> ${name}</div>
-          <div><strong>Status:</strong> ${attending === 'Yes' ? 'Attending with joy! 🎉' : attending === 'Tentative' ? 'Tentative / Maybe 🤔' : 'Cannot make it 😢'}</div>
-          ${attending !== 'No' ? `<div><strong>Party Count:</strong> ${adults} Adult(s), ${kids} Kid(s)</div>` : ''}
-          ${dietary && dietary.trim() !== '' && dietary !== 'None' ? `<div><strong>Dietry Preferences:</strong> ${dietary}</div>` : ''}
-        `;
+        summaryDiv.innerHTML = [
+          "<div><strong>Name:</strong> " + name + "</div>",
+          "<div><strong>Status:</strong> " + (attending === "Yes" ? "Attending with joy! 🎉" : attending === "Tentative" ? "Tentative / Maybe 🤔" : "Cannot make it 😢") + "</div>",
+          (attending !== "No" ? "<div><strong>Party Count:</strong> " + adults + " Adult(s), " + kids + " Kid(s)</div>" : ""),
+          (dietary && dietary.trim() !== "" && dietary !== "None" ? "<div><strong>Dietry Preferences:</strong> " + dietary + "</div>" : "")
+        ].join("");
 
-        // 4. Celebration sound & confetti
         playFanfare();
         triggerConfetti();
-
-        // 5. Open Modal
-        modal.classList.remove('hidden');
+        modal.classList.remove("hidden");
       });
 
-      closeModalBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-      });
-
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.classList.add('hidden');
-        }
-      });
+      closeModalBtn.addEventListener("click", () => modal.classList.add("hidden"));
+      modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.add("hidden"); });
     }
-
-    // =========================================================================
     // 8. PRIVATE HOST PORTAL (Password: ananya2026)
     // =========================================================================
     const HOST_PASSWORD = "ananya2026";
